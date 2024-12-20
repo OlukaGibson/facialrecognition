@@ -1,11 +1,10 @@
 import cv2
 import os
 from datetime import datetime
-from picamera2 import Picamera2
 import time
 
 # Change this to the name of the person you're photographing
-PERSON_NAME = "jaryd"  
+PERSON_NAME = "gibson"  
 
 def create_folder(name):
     dataset_folder = "dataset"
@@ -20,10 +19,11 @@ def create_folder(name):
 def capture_photos(name):
     folder = create_folder(name)
     
-    # Initialize the camera
-    picam2 = Picamera2()
-    picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (640, 480)}))
-    picam2.start()
+    # Initialize the webcam
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        print("Error: Could not open webcam.")
+        return
 
     # Allow camera to warm up
     time.sleep(2)
@@ -33,8 +33,11 @@ def capture_photos(name):
     print(f"Taking photos for {name}. Press SPACE to capture, 'q' to quit.")
     
     while True:
-        # Capture frame from Pi Camera
-        frame = picam2.capture_array()
+        # Capture frame from webcam
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: Failed to capture image.")
+            break
         
         # Display the frame
         cv2.imshow('Capture', frame)
@@ -53,8 +56,8 @@ def capture_photos(name):
             break
     
     # Clean up
+    cap.release()
     cv2.destroyAllWindows()
-    picam2.stop()
     print(f"Photo capture completed. {photo_count} photos saved for {name}.")
 
 if __name__ == "__main__":
